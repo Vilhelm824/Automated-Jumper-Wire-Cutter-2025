@@ -1,10 +1,11 @@
 import time
-from machine import Pin
+from machine import Pin, reset
+import sys
 
 
 # button pins
 BUTTON1_PIN = 27   # Extruder fwd
-BUTTON2_PIN = 14   # Extruder bckwd
+BUTTON2_PIN = 14   # Emergency stop
 BUTTON3_PIN = 26    # Cutter close
 BUTTON4_PIN = 25    # Cutter open
 BUTTON5_PIN = 33    # Actuator down
@@ -29,11 +30,11 @@ LIM_SW_BOTTOM = 23
 
 class Extruder:
     # TODO 
-    # - add function(s) for extruding certain wire lengths
+    # - add function(s) for extruding certain wire lengths - kinda done
     # - change the sleeps for delay to check time between steps instead--similar to debounce
 
     # int pin numbers that correspond to the stepper control pins
-    def __init__(self, pin1, pin2, pin3, pin4, step_delay=0.03):
+    def __init__(self, pin1, pin2, pin3, pin4, step_delay=0.05):
         # create pin objects
         self.step1 = Pin(pin1, Pin.OUT)
         self.step2 = Pin(pin2, Pin.OUT)
@@ -42,6 +43,19 @@ class Extruder:
         # steps: 0>1>2>3
         self.current_step = 0
         self.stepper_delay = step_delay
+        # bookkeeping
+        self.mm_per_step = 0.1175
+        self.step_offset = -18
+    
+    # input length in inches for the jumper
+    def extrude_length(self, length):
+        length += 0.6 # allowance for bent prongs
+        length_in_mm = length * 25.4
+        steps = int(length_in_mm / self.mm_per_step) + self.step_offset
+        print(steps)
+        for step in range(steps):
+            self.one_step()
+
     
     def release(self):
         self.step1.value(0)
@@ -110,7 +124,6 @@ class Extruder:
         time.sleep(self.stepper_delay)
 
 
-
 class Cutter:
     # int pin numbers for the motor signal pins, and pin for measuring current 
     def __init__(self, dc_pin1, dc_pin2, measure_pin):
@@ -129,7 +142,6 @@ class Cutter:
     def stop(self):
         self.dc1(0)
         self.dc2(0)
-
 
 
 class Actuator:
@@ -161,6 +173,12 @@ class Actuator:
         la2.value(0)
 
 
+def emergency_stop_button(button):
+    cutter.stop()
+    actuator.stop()
+    extruder.release()
+    reset()
+
 
 # initialize buttons
 button1 = Pin(BUTTON1_PIN, Pin.IN, Pin.PULL_UP)
@@ -169,15 +187,6 @@ button3 = Pin(BUTTON3_PIN, Pin.IN, Pin.PULL_UP)
 button4 = Pin(BUTTON4_PIN, Pin.IN, Pin.PULL_UP)
 button5 = Pin(BUTTON5_PIN, Pin.IN, Pin.PULL_UP)
 button6 = Pin(BUTTON6_PIN, Pin.IN, Pin.PULL_UP)
-
-
-
-def emergency_stop_button(self, button):
-    cutter.stop()
-    actuator.stop()
-    extruder.release()
-    print("emergency stop done")
-    exit()
 
 button2.irq(trigger=Pin.IRQ_FALLING, handler=emergency_stop_button)
 
@@ -188,29 +197,50 @@ cutter = Cutter(CUTTER_PIN1, CUTTER_PIN2, CUTTER_MEASURE)
 # initialize actuator
 actuator = Actuator(LIN_ACT_PIN1, LIN_ACT_PIN2, LIM_SW_TOP, LIM_SW_BOTTOM)
 
+
+num_wires = int(input("number of wires: "))
+jumper_length = float(input("jumper length: "))
+
 try:
-    while True:
-        # Extruder Control
-        if button1.value() == False:
-            extruder.one_step()
-        elif button2.value() == False:
-            extruder.one_step_back()
+    ready = input("ready to go (y/n): ")
+    if ready=="y"|ready=="Y":
+        for i in range(num_wires):
+            print("starting wire #", i+1)
+            # extrude set amount
+            extruder.extrude_length(jumper_length)
+            print("done extruding, manually cut now")
 
-        # Cutter Control   
-        if button3.value() == False:
-            cutter.close_blades()
-        elif button4.value() == False:
-            cutter.open_blades()
-        else:
-            cutter.stop()
-
-        # Actuator Control
-        if button5.value() == False:
-            actuator.move_down()
-        elif button6.value() == False:
-            actuator.move_up()
-        else:
+            has_cut = False
+            while(not has_cut):
+                # Cutter Control   
+                if button3.value() == False:
+                    cutter.close_blades()
+                elif button4.value() == False:
+                    cutter.open_blades()
+                else:
+                    cutter.stop()
+                # exit button
+                if not button5.value():
+                    has_cut = True
+                    print("finished cutting")
+            while(actuator.lim_bottom.value()):
+                actuator.move_down()
             actuator.stop()
+            print("finished moving down")
+            time.sleep(1)
+            while(actuator.lim_top.value()):
+                actuator.move_up()
+            actuator.stop()
+            print("finished moving up")
+            print("finished wire #", i+1)
+            time.sleep(1)
+    else:
+        print("exiting")      
+    cutter.stop()
+    actuator.stop()
+    extruder.release()
+    print("done")
+
       
 except KeyboardInterrupt:
     cutter.stop()
@@ -218,7 +248,7 @@ except KeyboardInterrupt:
     extruder.release()
     print("done")
 except Exception as e:
-    cutter.stop()
+    cutter.stop() 
     actuator.stop()
     extruder.release()
     print("Caught Exception: ", e)

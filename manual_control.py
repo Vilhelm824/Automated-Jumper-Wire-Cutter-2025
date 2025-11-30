@@ -4,7 +4,7 @@ from machine import Pin
 
 # button pins
 BUTTON1_PIN = 27   # Extruder fwd
-BUTTON2_PIN = 14   # Extruder bckwd
+BUTTON2_PIN = 14   # E stop
 BUTTON3_PIN = 26    # Cutter close
 BUTTON4_PIN = 25    # Cutter open
 BUTTON5_PIN = 33    # Actuator down
@@ -193,9 +193,9 @@ try:
         # Extruder Control
         if button1.value() == False:
             extruder.one_step()
-        elif button2.value() == False:
+        '''elif button2.value() == False:
             extruder.one_step_back()
-
+'''
         # Cutter Control   
         if button3.value() == False:
             cutter.close_blades()

@@ -1,5 +1,8 @@
 import time
 from machine import Pin, reset
+from bender import Bender
+from extruder import Extruder
+from cutter import Cutter
 import sys
 
 
@@ -28,151 +31,6 @@ LIM_SW_TOP = 22
 LIM_SW_BOTTOM = 23
 
 
-class Extruder:
-    # TODO 
-    # - add function(s) for extruding certain wire lengths - kinda done
-    # - change the sleeps for delay to check time between steps instead--similar to debounce
-
-    # int pin numbers that correspond to the stepper control pins
-    def __init__(self, pin1, pin2, pin3, pin4, step_delay=0.05):
-        # create pin objects
-        self.step1 = Pin(pin1, Pin.OUT)
-        self.step2 = Pin(pin2, Pin.OUT)
-        self.step3 = Pin(pin3, Pin.OUT)
-        self.step4 = Pin(pin4, Pin.OUT)
-        # steps: 0>1>2>3
-        self.current_step = 0
-        self.stepper_delay = step_delay
-        # bookkeeping
-        self.mm_per_step = 0.1175
-        self.step_offset = -18
-    
-    # input length in inches for the jumper
-    def extrude_length(self, length):
-        length += 0.6 # allowance for bent prongs
-        length_in_mm = length * 25.4
-        steps = int(length_in_mm / self.mm_per_step) + self.step_offset
-        print(steps)
-        for step in range(steps):
-            self.one_step()
-
-    
-    def release(self):
-        self.step1.value(0)
-        self.step2.value(0)
-        self.step3.value(0)
-        self.step4.value(0)
-    
-    def one_step(self):
-        self.current_step += 1
-        self.current_step = self.current_step % 4
-        
-        if self.current_step == 0:
-            # go to step 0
-            self.step1.value(1)
-            self.step2.value(0)
-            self.step3.value(0)
-            self.step4.value(1)
-        elif self.current_step == 1:
-            # go to step 1
-            self.step1.value(1)
-            self.step2.value(0)
-            self.step3.value(1)
-            self.step4.value(0)
-        elif self.current_step == 2:
-            # go to step 2
-            self.step1.value(0)
-            self.step2.value(1)
-            self.step3.value(1)
-            self.step4.value(0)
-        elif self.current_step == 3:
-            # go to step 3
-            self.step1.value(0)
-            self.step2.value(1)
-            self.step3.value(0)
-            self.step4.value(1)
-        time.sleep(self.stepper_delay)
-            
-    def one_step_back(self):
-        self.current_step -= 1
-        self.current_step = self.current_step % 4
-        
-        if self.current_step == 0:
-            # go to step 0
-            self.step1.value(1)
-            self.step2.value(0)
-            self.step3.value(0)
-            self.step4.value(1)
-        elif self.current_step == 1:
-            # go to step 1
-            self.step1.value(1)
-            self.step2.value(0)
-            self.step3.value(1)
-            self.step4.value(0)
-        elif self.current_step == 2:
-            # go to step 2
-            self.step1.value(0)
-            self.step2.value(1)
-            self.step3.value(1)
-            self.step4.value(0)
-        elif self.current_step == 3:
-            # go to step 3
-            self.step1.value(0)
-            self.step2.value(1)
-            self.step3.value(0)
-            self.step4.value(1)
-        time.sleep(self.stepper_delay)
-
-
-class Cutter:
-    # int pin numbers for the motor signal pins, and pin for measuring current 
-    def __init__(self, dc_pin1, dc_pin2, measure_pin):
-        self.dc1 = Pin(dc_pin1, Pin.OUT)
-        self.dc2 = Pin(dc_pin2, Pin.OUT)
-        self.measure_v = Pin(measure_pin, Pin.IN)
-
-    def close_blades(self):
-        self.dc1(1)
-        self.dc2(0)
-    
-    def open_blades(self):
-        self.dc1(0)
-        self.dc2(1)
-
-    def stop(self):
-        self.dc1(0)
-        self.dc2(0)
-
-
-class Actuator:
-    # int pin numbers for motor control and limit switches
-    def __init__(self, act_pin1, act_pin2, lim_sw_top, lim_sw_bottom):
-        self.la1 = Pin(act_pin1, Pin.OUT)
-        self.la2 = Pin(act_pin2, Pin.OUT)
-        self.lim_top = Pin(lim_sw_top, Pin.IN, Pin.PULL_UP)
-        self.lim_bottom = Pin(lim_sw_bottom, Pin.IN, Pin.PULL_UP)
-    
-    def move_down(self):
-        # pull up sw, so 1 when not pressed
-        if self.lim_bottom.value():
-            la1.value(1)
-            la2.value(0)
-        else:
-            self.stop()
-
-    def move_up(self):
-        # pull up sw, so 1 when not pressed
-        if self.lim_top.value():
-            la1.value(0)
-            la2.value(1)
-        else:
-            self.stop()
-
-    def stop(self):
-        la1.value(0)
-        la2.value(0)
-
-
 def emergency_stop_button(button):
     cutter.stop()
     actuator.stop()
@@ -195,7 +53,7 @@ extruder = Extruder(STEPPER_PIN1, STEPPER_PIN2, STEPPER_PIN3, STEPPER_PIN4)
 # initialize cutter
 cutter = Cutter(CUTTER_PIN1, CUTTER_PIN2, CUTTER_MEASURE)
 # initialize actuator
-actuator = Actuator(LIN_ACT_PIN1, LIN_ACT_PIN2, LIM_SW_TOP, LIM_SW_BOTTOM)
+actuator = Bender(LIN_ACT_PIN1, LIN_ACT_PIN2, LIM_SW_TOP, LIM_SW_BOTTOM)
 
 
 num_wires = int(input("number of wires: "))
@@ -203,7 +61,7 @@ jumper_length = float(input("jumper length: "))
 
 try:
     ready = input("ready to go (y/n): ")
-    if ready=="y"|ready=="Y":
+    if ready=="y":
         for i in range(num_wires):
             print("starting wire #", i+1)
             # extrude set amount

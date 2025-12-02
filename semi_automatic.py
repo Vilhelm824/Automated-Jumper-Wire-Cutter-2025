@@ -81,14 +81,10 @@ try:
                 if not button5.value():
                     has_cut = True
                     print("finished cutting")
-            while(actuator.lim_bottom.value()):
-                actuator.move_down()
-            actuator.stop()
+            actuator.move_down()
             print("finished moving down")
             time.sleep(1)
-            while(actuator.lim_top.value()):
-                actuator.move_up()
-            actuator.stop()
+            actuator.move_up()
             print("finished moving up")
             print("finished wire #", i+1)
             time.sleep(1)

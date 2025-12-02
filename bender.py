@@ -9,22 +9,21 @@ class Bender:
         self.lim_bottom = Pin(lim_sw_bottom, Pin.IN, Pin.PULL_UP)
     
     def move_down(self):
-        # prevent movement if at limit
+        # move all the way down
         # pull up sw, so 1 when not pressed
-        if self.lim_bottom.value():
+        while(self.lim_bottom.value()):
             la1.value(1)
             la2.value(0)
-        else:
-            self.stop()
+        self.stop()
+        
 
     def move_up(self):
-        # prevent movement if at limit
+        # move all the way up
         # pull up sw, so 1 when not pressed
-        if self.lim_top.value():
+        while(self.lim_top.value()):
             la1.value(0)
             la2.value(1)
-        else:
-            self.stop()
+        self.stop()
     
     def stop(self):
         la1.value(0)

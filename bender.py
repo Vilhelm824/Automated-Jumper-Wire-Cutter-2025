@@ -1,3 +1,6 @@
+import time
+from machine import Pin
+
 class Bender:
     # int pin numbers for motor control and limit switches
     def __init__(self, act_pin1, act_pin2, lim_sw_top, lim_sw_bottom):

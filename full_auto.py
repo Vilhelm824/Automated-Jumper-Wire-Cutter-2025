@@ -69,6 +69,9 @@ try:
         extruder.extrude_length(jumper_length)
         print("done extruding, manually cut now")
         # TODO: this stuff should be changed to work auto with current measurement
+        # pseudo code, assuming the sensing/limiting taken care of in cutter class
+        # cutter.close()
+        # cutter.open()
         has_cut = False
         while(not has_cut):
             # Cutter Control   
@@ -82,32 +85,23 @@ try:
             if not button5.value():
                 has_cut = True
                 print("finished cutting")
-        while(bender.lim_bottom.value()):
-            bender.move_down()
-        bender.stop()
+        bender.move_down()
         print("finished moving down")
         time.sleep(1)
-        while(bender.lim_top.value()):
-            bender.move_up()
-        bender.stop()
+        bender.move_up()
         print("finished moving up")
         print("finished wire #", i+1)
         time.sleep(1)
     else:
         print("exiting")      
-    cutter.stop()
-    bender.stop()
-    extruder.release()
-    print("done")
 
       
 except KeyboardInterrupt:
+    print("keyboard interrupt")
+except Exception as e:
+    print("Caught Exception: ", e)
+finally:
     cutter.stop()
     bender.stop()
     extruder.release()
-    print("done")
-except Exception as e:
-    cutter.stop() 
-    bender.stop()
-    extruder.release()
-    print("Caught Exception: ", e)
+    print("done cleaning up")

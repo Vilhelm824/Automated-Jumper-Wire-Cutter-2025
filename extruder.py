@@ -1,3 +1,6 @@
+import time
+from machine import Pin
+
 class Extruder:
     # TODO 
     # - add function(s) for extruding certain wire lengths - kinda done

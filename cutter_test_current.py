@@ -40,7 +40,7 @@ class Cutter:
     def check_stall(self):
         if not self.lim_closed.value():
             self.stalled = True
-            print("hit limit")
+            print("hit stall limit sw")
 
         resistor_reading = self.voltage_measure.read()
         self.measurements.append(resistor_reading)

@@ -17,9 +17,9 @@ BUTTON6_PIN = 32
 CUTTER_PIN1 = 15    
 CUTTER_PIN2 = 2
 # cutter current measurement pin
-CUTTER_MEASURE = 34
+CUTTER_MEASURE = 36 # change this
 # cutter limit switch
-LIM_SW_OPEN = 24
+LIM_SW_OPEN = 24 # change this
 # stepper pins
 STEPPER_PIN1 = 19
 STEPPER_PIN2 = 18

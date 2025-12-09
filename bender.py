@@ -10,13 +10,15 @@ class Bender:
         # input pins for the limit switches
         self.lim_top = Pin(lim_sw_top, Pin.IN, Pin.PULL_UP)
         self.lim_bottom = Pin(lim_sw_bottom, Pin.IN, Pin.PULL_UP)
+        
+        self.stop()
     
     def move_down(self):
         # move all the way down
         # pull up sw, so 1 when not pressed
         while(self.lim_bottom.value()):
-            la1.value(1)
-            la2.value(0)
+            self.la1.value(1)
+            self.la2.value(0)
         self.stop()
         
 
@@ -24,10 +26,10 @@ class Bender:
         # move all the way up
         # pull up sw, so 1 when not pressed
         while(self.lim_top.value()):
-            la1.value(0)
-            la2.value(1)
+            self.la1.value(0)
+            self.la2.value(1)
         self.stop()
     
     def stop(self):
-        la1.value(0)
-        la2.value(0)
+        self.la1.value(0)
+        self.la2.value(0)

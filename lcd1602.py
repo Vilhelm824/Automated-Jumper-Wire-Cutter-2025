@@ -1,6 +1,7 @@
 import machine
 import time
 
+# example code at: https://docs.sunfounder.com/projects/umsk/en/latest/04_pi_pico/pico_lesson26_lcd.html
 
 class LCD:
     def __init__(self, i2c, addr=None, blen=1):

@@ -42,26 +42,32 @@ bender = Bender(LIN_ACT_PIN1, LIN_ACT_PIN2, LIM_SW_TOP, LIM_SW_BOTTOM)
 
 
 jumper_length = float(input("jumper length: "))
+num_jumpers = int(input("number of jumpers: "))
 
 try:
     ready = input("ready to go (y/n): ")
     if ready=="y":
-        # make sure bender is moved to the top and cutter blades are open
-        # before extruding
-        bender.move_up()
-        cutter.open_blades()
-        # extrude the jumper length (added length of jumper legs is taken care of in Extruder class)
-        extruder.extrude_length(jumper_length)
-        print("done extruding, cutting now")
-        cutter.cut()
-        print("done cutting, bending now")
-        bender.move_down()
-        print("finished moving down")
-        time.sleep(0.5)
-        bender.move_up()
-        print("finished moving up")
-        print("finished wire")
-        time.sleep(1)
+        for i in range(num_jumpers):
+            # make sure bender is moved to the top and cutter blades are open
+            # before extruding
+            print("making sure bender and cutter are out of the way")
+            bender.move_up()
+            cutter.open_blades()
+            # extrude the jumper length (added length of jumper legs is taken care of in Extruder class)
+            print("extruding")
+            time.sleep(1)
+            extruder.extrude_length(jumper_length)
+            print("done extruding, cutting now")
+            time.sleep(1)
+            cutter.cut()
+            print("done cutting, bending now")
+            time.sleep(1)
+            bender.move_down()
+            print("Moving back up")
+            time.sleep(1)
+            bender.move_up()
+            print("finished wire #", i+1)
+            time.sleep(1)
     else:
         print("exiting")      
 

@@ -19,7 +19,7 @@ class Extruder:
         # length to step conversion
         self.mm_per_step = 0.1175
         # tune num steps for correct wire lengths
-        self.step_offset = -8
+        self.step_offset = -12
         
         self.release()
     

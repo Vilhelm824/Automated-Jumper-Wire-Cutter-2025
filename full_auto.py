@@ -34,7 +34,7 @@ def emergency_stop_button(button):
     reset()
 
 # initialize stepper
-extruder = Extruder(STEPPER_PIN1, STEPPER_PIN2, STEPPER_PIN3, STEPPER_PIN4)
+extruder = Extruder(STEPPER_PIN1, STEPPER_PIN2, STEPPER_PIN3, STEPPER_PIN4, step_delay=0.04)
 # initialize cutter
 cutter = Cutter(CUTTER_PIN1, CUTTER_PIN2, CUTTER_MEASURE, LIM_SW_OPEN, LIM_SW_CLOSED)
 # initialize bender

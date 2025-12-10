@@ -10,7 +10,7 @@ class Cutter:
         # use 11dB atten, which is good for measuring from 150-2450mV
         self.voltage_measure = ADC(Pin(measure_pin)) # default atten value?
         self.measurements = []
-        self.measurement_threshold = 230 # tune for the cutter
+        self.measurement_threshold = 240 # tune for the cutter
         self.lim_open = Pin(lim_sw_open, Pin.IN, Pin.PULL_UP)
         self.lim_closed = Pin(lim_sw_closed, Pin.IN, Pin.PULL_UP)
         self.stalled = False

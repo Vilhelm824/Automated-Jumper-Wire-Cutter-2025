@@ -13,6 +13,19 @@ class Bender:
         
         self.stop()
     
+    def change_die(self):
+        # move to bottom
+        self.move_down()
+        time_to_move = 1000
+        time_passed = 0
+        start_time = time.ticks_ms()
+        while(self.lim_top.value() and (time_passed<time_to_move)):
+            time_passed = time.ticks_diff(time.ticks_ms(), start_time)
+            print(time_passed)
+            self.la1.value(0)
+            self.la2.value(1)
+        self.stop()
+    
     def move_down(self):
         # move all the way down
         # pull up sw, so 1 when not pressed
